@@ -26,6 +26,7 @@
     </Compile>
     <Compile Include="FDPricing.py" />
     <Compile Include="FDPricing0.py" />
+    <Compile Include="FDSolver.py" />
     <Compile Include="FDSolve.py">
       <SubType>Code</SubType>
     </Compile>
