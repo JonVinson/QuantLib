@@ -8,8 +8,9 @@ from scipy.interpolate import interp1d
 from Processes import *
 from BlackScholes import *
 from FDPricing import *
-from FDSolve import *
 from FiniteDifference import *
+
+import FDSolver;
 
 ################################################################################################################
 
@@ -35,25 +36,13 @@ def sabr_prices_mc(alpha, beta, rho, sig0, f0, mu, K, T, Z1, Z2, dt):
 
 ##############################################################################################################
 
-g = None
-work_a = None
-work_ss = None
+fds = None
 init = None
+ss = None
 
 def sabr_dist_fd2(alpha, beta, rho, sig0, f0, mu, T, bnds, nx, ny, n_steps):
 
-
-    global g, work_a, work_ss, init
-
-    if g is None:
-        g = np.empty((n_steps + 1, nx, ny))
-    if work_a is None:
-        work_a = np.empty((nx, ny, nx, ny))
-    if work_ss is None:
-        work_ss = np.zeros((nx, ny, 2, 2))
-    if init is None:
-        init = np.empty((nx, ny))
-
+    global fds
 
     a = bnds[0]
     b = bnds[1]
@@ -65,27 +54,28 @@ def sabr_dist_fd2(alpha, beta, rho, sig0, f0, mu, T, bnds, nx, ny, n_steps):
     b = bnds[3]
     sig = np.linspace(a, b, ny)
     dy = (b - a) / (ny - 1)
-    # Finite difference algorithm (new)
+    dt = T[-1] / n_steps
 
-    #s = np.zeros((len(F), len(sig), 2, 2))
-    ss = work_ss
+    if fds is None:
+        fds = FDSolver(nx, dx, ny, dy, n_steps + 1, dt)
+        init = np.empty((nx, ny))
+        ss = np.zeros((nx, ny, 2, 2))
+
     fb = np.power(F[:, np.newaxis], beta)
     ss[:, :, 0, 0] = (sig * fb) ** 2
     ss[:, :, 1, 0] = alpha * rho * (sig ** 2) * fb
     ss[:, :, 0, 1] = ss[:, :, 1, 0]
     ss[:, :, 1, 1] = (alpha * sig) ** 2
-    
-    dt = T[-1] / n_steps
 
     init[:] = 0
     ix = int((f0 - F[0]) / dx)
     iy = int((sig0 - sig[0]) / dy)
     init[ix, iy] = 1
 
-    fd_solve_fwd_2d(init, None, ss, F, sig, n_steps, dt, work_a=work_a, out=g)
+    fds.Set(init, mu, ss)
+    fds.SolveForward()
 
-    return g
-
+    return fds.Solution()
 
 ##############################################################################################################
 

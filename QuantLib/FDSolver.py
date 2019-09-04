@@ -13,40 +13,54 @@ import scipy.linalg as lin
 
 class FDSolver:
 
-    def __init__(self, x, y, t, condition, mean, var):
+    stencil_a = np.array([-1.5, 2, -0.5])
+    stencil_b = -np.flip(stencil_a, 0)
+    stencil_c = np.array([-0.5, 0, 0.5])
 
-        nx = len(x)
-        dx = (x[-1] - x[0]) / (nx - 1)
+    stencil_2a = np.array([2, -5, 4, -1])
+    stencil_2b = np.flip(stencil_2a, 0)
+    stencil_2c = np.array([1, -2, 1])
 
-        ny = len(y)
-        dy = (y[-1] - y[0]) / (ny - 1)
+    def __init__(self, nx, dx, ny, dy, nt, dt, cond = None, mu = None, ss = None):
 
-        nt = len(t)
-        dt = (t[-1] - t[0]) / (nt - 1)
+        self.nx = nx
+        self.dx = dx
+        self.ny = ny
+        self.dy = dy
+        self.nt = nt
+        self.dt = dt
 
-        a = np.empty((nx, ny, nx, ny))
-        a[:] = 0.0
+        self.cond = cond if cond != None else np.empty((nx, ny))
+        self.mu = mu if mu != None else np.empty((nx, ny))
+        self.ss = ss if ss != None else np.empty((nx, ny))
 
-        g = np.empty((nt + 1, nx * ny))
-
-        cond = condition
-        mu = mean
-        ss = var
-        disc = discount
-
-        stencil_a = np.array([-1.5, 2, -0.5])
-        stencil_b = -np.flip(stencil_a, 0)
-        stencil_c = np.array([-0.5, 0, 0.5])
-
-        stencil_2a = np.array([2, -5, 4, -1])
-        stencil_2b = np.flip(stencil_2a, 0)
-        stencil_2c = np.array([1, -2, 1])
+        self.a = np.zeros((nx, ny, nx, ny))
+        self.g = np.empty((nt + 1, nx * ny))
 
 #--------------------------------------------------------------------------------#
+    
+    def Set(cond, mu, ss):
+        
+        self.cond[:] = cond
+        self.mu[:] = mu
+        self.ss[:] = ss
+        self.a[:] = 0
 
+#--------------------------------------------------------------------------------#
+    
     def SolveBackward(self):
 
-        term = cond
+        nx = self.nx
+        dx = self.dx
+        ny = self.ny
+        dy = self.dy
+        nt = self.nt
+        dt = self.dt
+        term = self.cond
+        mu = self.mu
+        ss == self.ss
+        a = self.a
+        g = self.g
 
         if not mu is None:
 
@@ -135,7 +149,17 @@ class FDSolver:
 
     def SolveForward(self):
 
-        init = cond
+        nx = self.nx
+        dx = self.dx
+        ny = self.ny
+        dy = self.dy
+        nt = self.nt
+        dt = self.dt
+        init = self.cond
+        mu = self.mu
+        ss == self.ss
+        a = self.a
+        g = self.g
 
         if not mu is None:
 
@@ -229,5 +253,5 @@ class FDSolver:
 #-------------------------------------------------------------------------------------------------------------------------#
 
     def Solution(self):
-        return np.reshape(g, (nt + 1, nx, ny))
+        return np.reshape(self.g, (self.nt + 1, self.nx, self.ny))
 
