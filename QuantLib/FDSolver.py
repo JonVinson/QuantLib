@@ -11,56 +11,77 @@
 import numpy as np
 import scipy.linalg as lin
 
-class FDSolver:
+class FDSolver2D:
 
-    def __init__(self, x, y, t, condition, mean, var):
+    stencil_a = np.array([0, 0.5])
+    stencil_b = -np.flip(stencil_a, 0)
+    stencil_c = np.array([-0.5, 0, 0.5])
 
-        nx = len(x)
-        dx = (x[-1] - x[0]) / (nx - 1)
+    stencil_2a = np.array([-2, 1])
+    stencil_2b = np.flip(stencil_2a, 0)
+    stencil_2c = np.array([1, -2, 1])
 
-        ny = len(y)
-        dy = (y[-1] - y[0]) / (ny - 1)
+    def __init__(self, nx, dx, ny, dy, nt, dt, cond = None, mu = None, ss = None):
 
-        nt = len(t)
-        dt = (t[-1] - t[0]) / (nt - 1)
+        self.nx = nx
+        self.dx = dx
+        self.ny = ny
+        self.dy = dy
+        self.nt = nt
+        self.dt = dt
 
-        a = np.empty((nx, ny, nx, ny))
-        a[:] = 0.0
+        self.cond = cond if cond != None else np.empty((nx, ny))
+        self.mu = mu if mu != None else np.empty((nx, ny, 2))
+        self.ss = ss if ss != None else np.empty((nx, ny, 2, 2))
 
-        g = np.empty((nt + 1, nx * ny))
-
-        cond = condition
-        mu = mean
-        ss = var
-        disc = discount
-
-        stencil_a = np.array([-1.5, 2, -0.5])
-        stencil_b = -np.flip(stencil_a, 0)
-        stencil_c = np.array([-0.5, 0, 0.5])
-
-        stencil_2a = np.array([2, -5, 4, -1])
-        stencil_2b = np.flip(stencil_2a, 0)
-        stencil_2c = np.array([1, -2, 1])
+        self.a = np.zeros((nx, ny, nx, ny))
+        self.g = np.empty((nt + 1, nx * ny))
 
 #--------------------------------------------------------------------------------#
+    
+    def Set(self, cond, mu, ss):
+        
+        self.cond[:] =  0 if cond is None else cond
+        self.mu[:] = 0 if mu is None else mu
+        self.ss[:] = 0 if ss is None else ss
+        self.a[:] = 0
 
+#--------------------------------------------------------------------------------#
+    
     def SolveBackward(self):
 
-        term = cond
+        nx = self.nx
+        dx = self.dx
+        ny = self.ny
+        dy = self.dy
+        nt = self.nt
+        dt = self.dt
+        term = self.cond
+        mu = self.mu
+        ss = self.ss
+        a = self.a
+        g = self.g
+
+        stencil_a = self.stencil_a
+        stencil_b = self.stencil_b
+        stencil_c = self.stencil_c
+        stencil_2a = self.stencil_2a
+        stencil_2b = self.stencil_2b
+        stencil_2c = self.stencil_2c
 
         if not mu is None:
 
             for j in range(ny):
-                a[0, j, :3, j] += mu[0, j, 0] * stencil_a / dx
-                a[-1, j, -3:, j] += mu[-1, j, 0] * stencil_b / dx
+                a[0, j, :2, j] += mu[:2, j, 0] * stencil_a / dx
+                a[-1, j, -2:, j] += mu[-2:, j, 0] * stencil_b / dx
                 for i in range(1, nx - 1):
-                    a[i, j, i-1:i+2, j] += mu[i, j, 0] * stencil_c / dx
+                    a[i, j, i-1:i+2, j] += mu[i-1:i+2, j, 0] * stencil_c / dx
 
             for i in range(nx):
-                a[i, 0, i, :3] += mu[i, 0, 1] * stencil_a / dy
-                a[i, -1, i, -3:] += mu[i, -1, 1] * stencil_b / dy
+                a[i, 0, i, :2] += mu[i, :2, 1] * stencil_a / dy
+                a[i, -1, i, -2:] += mu[i, -2:, 1] * stencil_b / dy
                 for j in range(1, ny - 1):
-                    a[i, j, i, j-1:j+2] += mu[i, j, 1] * stencil_c / dy
+                    a[i, j, i, j-1:j+2] += mu[i, i-1:i+2, 1] * stencil_c / dy
 
         if not ss is None:
 
@@ -135,7 +156,24 @@ class FDSolver:
 
     def SolveForward(self):
 
-        init = cond
+        nx = self.nx
+        dx = self.dx
+        ny = self.ny
+        dy = self.dy
+        nt = self.nt
+        dt = self.dt
+        init = self.cond
+        mu = self.mu
+        ss = self.ss
+        a = self.a
+        g = self.g
+
+        stencil_a = self.stencil_a
+        stencil_b = self.stencil_b
+        stencil_c = self.stencil_c
+        stencil_2a = self.stencil_2a
+        stencil_2b = self.stencil_2b
+        stencil_2c = self.stencil_2c
 
         if not mu is None:
 
@@ -152,11 +190,6 @@ class FDSolver:
                     a[i, j, i, j-1:j+2] -= mu[i, j-1:j+2, 1] * stencil_c / dy
 
         if not ss is None:
-
-            stencil_2a = np.array([-2, 1])
-            #stencil_2a = np.array([2, -5, 4, -1])
-            stencil_2b = np.flip(stencil_2a, 0)
-            stencil_2c = np.array([1, -2, 1])
 
             dx2 = dx * dx
 
@@ -229,5 +262,5 @@ class FDSolver:
 #-------------------------------------------------------------------------------------------------------------------------#
 
     def Solution(self):
-        return np.reshape(g, (nt + 1, nx, ny))
+        return np.reshape(self.g, (self.nt + 1, self.nx, self.ny))
 
