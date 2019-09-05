@@ -30,9 +30,9 @@ class FDSolver2D:
         self.nt = nt
         self.dt = dt
 
-        self.cond = cond if cond != None else np.empty((nx, ny))
-        self.mu = mu if mu != None else np.empty((nx, ny, 2))
-        self.ss = ss if ss != None else np.empty((nx, ny, 2, 2))
+        self.cond = cond
+        self.mu = mu
+        self.ss = ss
 
         self.a = np.zeros((nx, ny, nx, ny))
         self.g = np.empty((nt + 1, nx * ny))
@@ -41,9 +41,21 @@ class FDSolver2D:
     
     def Set(self, cond, mu, ss):
         
-        self.cond[:] =  0 if cond is None else cond
-        self.mu[:] = 0 if mu is None else mu
-        self.ss[:] = 0 if ss is None else ss
+        if self.cond is None or np.shape(self.cond) != np.shape(cond):
+            self.cond = cond
+        else:
+            self.cond[:] = cond
+
+        if self.mu is None or np.shape(self.mu) != np.shape(mu):
+            self.mu = mu
+        else:
+            self.mu[:] = mu
+
+        if self.ss is None or np.shape(self.ss) != np.shape(ss):
+            self.ss = ss
+        else:
+            self.ss[:] = ss
+
         self.a[:] = 0
 
 #--------------------------------------------------------------------------------#
