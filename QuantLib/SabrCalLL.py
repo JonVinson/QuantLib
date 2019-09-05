@@ -10,7 +10,7 @@ from BlackScholes import *
 from FDPricing import *
 from FiniteDifference import *
 
-import FDSolver;
+from FDSolver import FDSolver2D;
 
 ################################################################################################################
 
@@ -42,7 +42,7 @@ ss = None
 
 def sabr_dist_fd2(alpha, beta, rho, sig0, f0, mu, T, bnds, nx, ny, n_steps):
 
-    global fds
+    global fds, init, ss
 
     a = bnds[0]
     b = bnds[1]
@@ -57,7 +57,7 @@ def sabr_dist_fd2(alpha, beta, rho, sig0, f0, mu, T, bnds, nx, ny, n_steps):
     dt = T[-1] / n_steps
 
     if fds is None:
-        fds = FDSolver(nx, dx, ny, dy, n_steps + 1, dt)
+        fds = FDSolver2D(nx, dx, ny, dy, n_steps, dt)
         init = np.empty((nx, ny))
         ss = np.zeros((nx, ny, 2, 2))
 
