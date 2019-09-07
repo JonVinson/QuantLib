@@ -3,21 +3,21 @@ import numpy as np
 class DiffusionModel:
 
     def __init__(self, bounds, n_points):
-        self.nx = n_points[0]
+        self._nx = n_points[0]
         a = bounds[0]
         b = bounds[1]
-        self.x = np.linspace(a, b, self.nx)
-        self.ny = n_points[1]
+        self._x = np.linspace(a, b, self._nx)
+        self._ny = n_points[1]
         a = bounds[2]
         b = bounds[3]
-        self.y = np.linspace(a, b, self.ny)
+        self._y = np.linspace(a, b, self._ny)
 
 class SABRModel(DiffusionModel):
 
     def __init__(self, bounds, n_points):
         super().__init__(bounds, n_points)
-        self.F = None
-        self.ss = None
+        self._F = None
+        self._ss = None
 
     def Calculate(self, p):
 
@@ -25,18 +25,18 @@ class SABRModel(DiffusionModel):
         beta = p[1]
         rho = p[2]
  
-        if self.F is None:
-            self.F = self.x[:, np.newaxis]
+        if self._F is None:
+            self._F = self._x[:, np.newaxis]
 
-        F = self.F
-        sig = self.y
-        nx = self.nx
-        ny = self.ny
+        F = self._F
+        sig = self._y
+        nx = self._nx
+        ny = self._ny
 
-        if self.ss is None:
-            self.ss = np.zeros((nx, ny, 2, 2))  
+        if self._ss is None:
+            self._ss = np.zeros((nx, ny, 2, 2))  
 
-        ss = self.ss
+        ss = self._ss
     
         fb = np.power(F, beta)
 
