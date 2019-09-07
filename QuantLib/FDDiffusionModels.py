@@ -14,7 +14,12 @@ class DiffusionModel:
 
 class SABRModel(DiffusionModel):
 
-    def Calculate(p):
+    def __init__(self, bounds, n_points):
+        super().__init__(bounds, n_points)
+        self.F = None
+        self.ss = None
+
+    def Calculate(self, p):
 
         alpha = p[0]
         beta = p[1]

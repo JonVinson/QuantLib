@@ -42,7 +42,7 @@ sabr = None
 
 def sabr_dist_fd2(alpha, beta, rho, sig0, f0, mu, T, bnds, nx, ny, n_steps):
 
-    global fds
+    global fds, sabr
 
     a = bnds[0]
     b = bnds[1]
