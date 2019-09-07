@@ -24,6 +24,9 @@
     <Compile Include="BlackScholes.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="FDDiffusionModels.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="FDPricing.py" />
     <Compile Include="FDPricing0.py" />
     <Compile Include="FDSolver.py" />
