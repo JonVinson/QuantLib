@@ -2,7 +2,13 @@ import numpy as np
 
 class DiffusionModel:
 
+    def __init__(self):
+        return
+
     def __init__(self, bounds, n_points):
+        SetBounds(self, bounds, n_points)
+
+    def SetBounds(self, bounds, n_points):
         self._nx = n_points[0]
         a = bounds[0]
         b = bounds[1]
@@ -13,6 +19,9 @@ class DiffusionModel:
         self._y = np.linspace(a, b, self._ny)
 
 class SABRModel(DiffusionModel):
+
+    def __init__(self):
+        super().__init__();
 
     def __init__(self, bounds, n_points):
         super().__init__(bounds, n_points)
