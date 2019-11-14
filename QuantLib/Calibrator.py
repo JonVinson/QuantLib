@@ -38,7 +38,7 @@ def calibrate(self, model, initParams, pBounds, bounds, n, T, nt, diffStart, kno
         for i in range(nidx):
             q[pIndex[i]] = p[i]
         for i in range(npar - nidx):
-            q[pComp[i]] = initParams[i]
+            q[pComp[i]] = initParams[pComp[i]]
         [solver.mu, solver.ss] = model.Calculate(q)
         solver.cond[:] = 0
         solver.cond[ix, iy] = 1
