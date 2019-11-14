@@ -4,7 +4,7 @@ from scipy.interpolate import interp1d
 from FDSolver import FDSolver2D
 from FDDiffusionModels import DiffusionModel
 
-def calibrate(self, model, initParams, pBounds, bounds, n, T, nt, diffStart, knownDist, xDist, pIndex = None):
+def calibrate(model, initParams, pBounds, bounds, n, T, nt, diffStart, knownDist, xDist, pIndex = None):
 
     [nx, ny] = n
 
