@@ -39,7 +39,7 @@ def calibrate(model, varParams, pBounds, bounds, n, T, nt, diffStart, knownDist,
         varIndex = range(n_par)
 
     n_var = len(varIndex) 
-    fixIndex = set(range(n_par)) - set(varIndex)
+    fixIndex = np.setdiff1d(range(n_par), varIndex)
 
     def opt_fun(p):
         for i in range(n_var):
@@ -52,16 +52,11 @@ def calibrate(model, varParams, pBounds, bounds, n, T, nt, diffStart, knownDist,
         solver.a[:] = 0
         solver.SolveForward()
         dist2d = solver.Solution()
-        [a, b] = bounds[:1]
+        [a, b] = bounds[:2]
         F = np.linspace(a, b, nx)
         fintp = interp1d(F, np.sum(dist2d[-1], axis=1), kind='cubic')
         G = fintp(xDist)
         dist = G / np.sum(G)
         return -np.sum(knownDist * np.log(dist))
 
-    p0 = np.zeros(n_var)
-    
-    for i in range(n_var):
-        p0[i] = varParams[varIndex[i]]
-
-    return minimize(opt_fun, p0, pBounds)
+    return minimize(opt_fun, varParams, bounds=pBounds)

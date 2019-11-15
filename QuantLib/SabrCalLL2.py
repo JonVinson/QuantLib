@@ -157,10 +157,12 @@ plt.plot(K, G)
 plt.show()
 
 pBnds = ((0, 1), (-1, 1))
-initParams = [0.5, beta, 0]
-pIndex = [0, 2]
+varParams = (0.5, 0)
+varIndex = [0, 2]
+fixParams = [beta]
+model = SABRModel()
 
-result = calibrate(SABRModel(), initParams, pBnds, bnds, [nx, ny], n_steps, T, [f0, sig0], G, K)
+result = calibrate(model, varParams, pBnds, bnds, [nx, ny], T, n_steps, [f0, sig0], G, K, fixParams, varIndex)
 
 print("FD result: ", result)
 
