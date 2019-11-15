@@ -4,7 +4,7 @@ from scipy.interpolate import interp1d
 from FDSolver import FDSolver2D
 from FDDiffusionModels import DiffusionModel
 
-def calibrate(model, initParams, pBounds, bounds, n, T, nt, diffStart, knownDist, xDist, pIndex = None):
+def calibrate(model, varParams, pBounds, bounds, n, T, nt, diffStart, knownDist, xDist, fixParams = None, varIndex = None):
 
     [nx, ny] = n
 
@@ -25,36 +25,43 @@ def calibrate(model, initParams, pBounds, bounds, n, T, nt, diffStart, knownDist
 
     knownDist = knownDist[:, np.newaxis]
 
-    npar = len(initParams)
-    q = np.zeros(npar)
+    n_par = model.ParameterCount()
+    n_var = len(varParams)
+    n_fix = 0 if fixParams is None else len(fixParams)
 
-    if pIndex is None:
-        pIndex = range(npar)
+    if (n_par != n_var + n_fix):
+        print("Model requires " + n_par + " parameters.")
+        return
 
-    nidx = len(pIndex) 
-    pComp = set(range(npar)) - set(pIndex)
+    q = np.zeros(n_par)
+
+    if varIndex is None:
+        varIndex = range(n_par)
+
+    n_var = len(varIndex) 
+    fixIndex = set(range(n_par)) - set(varIndex)
 
     def opt_fun(p):
-        for i in range(nidx):
-            q[pIndex[i]] = p[i]
-        for i in range(npar - nidx):
-            q[pComp[i]] = initParams[pComp[i]]
+        for i in range(n_var):
+            q[varIndex[i]] = p[i]
+        for i in range(n_fix):
+            q[fixIndex[i]] = fixParams[i]
         [solver.mu, solver.ss] = model.Calculate(q)
         solver.cond[:] = 0
         solver.cond[ix, iy] = 1
         solver.a[:] = 0
         solver.SolveForward()
         dist2d = solver.Solution()
-        [a, b] = bnds[:1]
+        [a, b] = bounds[:1]
         F = np.linspace(a, b, nx)
-        fintp = interp1d(F, np.sum(dist2d[-1],axis=1), kind='cubic')
+        fintp = interp1d(F, np.sum(dist2d[-1], axis=1), kind='cubic')
         G = fintp(xDist)
         dist = G / np.sum(G)
         return -np.sum(knownDist * np.log(dist))
 
-    p0 = np.zeros(nidx)
+    p0 = np.zeros(n_var)
     
-    for i in range(nidx):
-        p0[i] = initParams[pIndex[i]]
+    for i in range(n_var):
+        p0[i] = varParams[varIndex[i]]
 
     return minimize(opt_fun, p0, pBounds)

@@ -2,37 +2,27 @@ import numpy as np
 
 class DiffusionModel:
 
-    def __init__(self):
-        return
-
-    def __init__(self, bounds, n_points):
-        SetBounds(self, bounds, n_points)
+    def __init__(self, bounds = None, n_points = None):
+        if bounds is not None and n_points is not None:
+            self.SetBounds(bounds, n_points)
 
     def SetBounds(self, bounds, n_points):
-        self._nx = n_points[0]
-        a = bounds[0]
-        b = bounds[1]
+        [self._nx, self._ny] = n_points
+        [a, b] = bounds[:2]
         self._x = np.linspace(a, b, self._nx)
-        self._ny = n_points[1]
-        a = bounds[2]
-        b = bounds[3]
+        [a, b] = bounds[2:]
         self._y = np.linspace(a, b, self._ny)
 
 class SABRModel(DiffusionModel):
 
-    def __init__(self):
-        super().__init__();
-
-    def __init__(self, bounds, n_points):
+    def __init__(self, bounds = None, n_points = None):
         super().__init__(bounds, n_points)
         self._F = None
         self._ss = None
 
     def Calculate(self, p):
 
-        alpha = p[0]
-        beta = p[1]
-        rho = p[2]
+        [alpha, beta, rho] = p
  
         if self._F is None:
             self._F = self._x[:, np.newaxis]
@@ -55,3 +45,6 @@ class SABRModel(DiffusionModel):
         ss[:, :, 1, 1] = (alpha * sig) ** 2
 
         return None, ss
+
+    def ParameterCount(self):
+        return 3
