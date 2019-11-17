@@ -9,7 +9,7 @@ from Processes import *
 from BlackScholes import *
 from FDPricing import *
 from FiniteDifference import *
-from Calibrator import calibrate
+from Calibrator import Calibrator
 
 from FDSolver import FDSolver2D
 from FDDiffusionModels import SABRModel
@@ -162,7 +162,15 @@ varIndex = [0, 2]
 fixParams = [beta]
 model = SABRModel()
 
-result = calibrate(model, varParams, pBnds, bnds, [nx, ny], T, n_steps, [f0, sig0], G, K, fixParams, varIndex)
+cal = Calibrator()
+
+cal.SetModel(model)
+cal.SetParameters(varParams, pBnds, varIndex, fixParams)
+cal.SetLattice(bnds, [nx, ny], t, n_steps)
+cal.SetDiffusionStart([f0, sig0])
+cal.SetDistribution(G, K)
+
+result = cal.GetResult()
 
 print("FD result: ", result)
 
