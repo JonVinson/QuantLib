@@ -12,6 +12,7 @@ class Calibrator:
     def SetModel(self, model):
         self.model = model
         self._setupModel()
+        self._setupVariables()
 
     def SetParameters(self, varParams, pBounds = None, varIndex = None, fixParams = None):
         self.varParams = varParams
