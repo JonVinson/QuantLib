@@ -13,73 +13,99 @@ import scipy.linalg as lin
 
 class FDSolver2D:
 
-    stencil_a = np.array([0, 0.5])
-    stencil_b = -np.flip(stencil_a, 0)
-    stencil_c = np.array([-0.5, 0, 0.5])
+    _stencil_a = np.array([0, 0.5])
+    _stencil_b = -np.flip(_stencil_a, 0)
+    _stencil_c = np.array([-0.5, 0, 0.5])
 
-    stencil_2a = np.array([-2, 1])
-    stencil_2b = np.flip(stencil_2a, 0)
-    stencil_2c = np.array([1, -2, 1])
+    _stencil_2a = np.array([-2, 1])
+    _stencil_2b = np.flip(_stencil_2a, 0)
+    _stencil_2c = np.array([1, -2, 1])
 
-    def __init__(self, nx, dx, ny, dy, nt, dt, cond = None, mu = None, ss = None):
+    def __init__(self, shape, intervals, condition = None, mu = None, ss = None):
 
-        self.nx = nx
-        self.dx = dx
-        self.ny = ny
-        self.dy = dy
-        self.nt = nt
-        self.dt = dt
+        [self._nx, self._ny, self._nt] = shape
+        [self._dx, self._dy, self._dt] = intervals
 
-        self.cond = cond
-        self.mu = mu
-        self.ss = ss
+        self._cond = np.zeros((self._nx, self._ny)) if condition is None else condition
+        self._mu = np.zeros((self._nx, self._ny)) if mu is None else mu
+        self._ss = np.zeros((self._nx, self._ny)) if ss is None else ss
 
-        self.a = np.zeros((nx, ny, nx, ny))
-        self.g = np.empty((nt + 1, nx * ny))
+        self._a = np.zeros((self._nx, self._ny, self._nx, self._ny))
+        self._g = np.empty((self._nt, self._nx * self._ny))
+
+        self._nt -= 1
 
 #--------------------------------------------------------------------------------#
-    
-    def Set(self, cond, mu, ss):
+
+    def SetCoefficients(self, coeffiecents):
         
-        if self.cond is None or np.shape(self.cond) != np.shape(cond):
-            self.cond = cond
-        else:
-            self.cond[:] = cond
+        [mu, ss] = coeffiecents
 
-        if self.mu is None or np.shape(self.mu) != np.shape(mu):
-            self.mu = mu
+        if self._mu is None or np.shape(self._mu) != np.shape(mu):
+            self._mu = mu
         else:
-            self.mu[:] = mu
+            self._mu[:] = mu
 
-        if self.ss is None or np.shape(self.ss) != np.shape(ss):
-            self.ss = ss
+        if self._ss is None or np.shape(self._ss) != np.shape(ss):
+            self._ss = ss
         else:
-            self.ss[:] = ss
-
-        self.a[:] = 0
+            self._ss[:] = ss
 
 #--------------------------------------------------------------------------------#
-    
+    def SetCondition(self, cond):
+        if self._cond is None or np.shape(self._cond) != np.shape(cond):
+            self._cond = cond
+        else:
+            self._cond[:] = cond
+
+    def Condition(self):
+        return self._cond;
+#--------------------------------------------------------------------------------#
+    def _validateSetup(self):
+        valid = True
+        if self._cond is None:
+            print("condition not set")
+            valid = False
+        if self._ss is None and self._mu is None:
+            print("ss and/or mu not set")
+            valid = False
+        if self._ss is not None and self._mu is not None and np.shape(self._ss) != np.shape(self._mu):
+            print("mu and ss are different shapes")
+            valid = False
+        if self._ss is not None and np.shape(self._ss) != np.shape(self._cond):
+            print("condition and ss are different shapes")
+            valid = False
+        if self._mu is not None and np.shape(self._mu) != np.shape(self._cond):
+            print("condition and mu are different shapes")
+            valid = False
+        return valid
+
+#--------------------------------------------------------------------------------#
     def SolveBackward(self):
 
-        nx = self.nx
-        dx = self.dx
-        ny = self.ny
-        dy = self.dy
-        nt = self.nt
-        dt = self.dt
-        term = self.cond
-        mu = self.mu
-        ss = self.ss
-        a = self.a
-        g = self.g
+        if not self._validateSetup():
+            return None
 
-        stencil_a = self.stencil_a
-        stencil_b = self.stencil_b
-        stencil_c = self.stencil_c
-        stencil_2a = self.stencil_2a
-        stencil_2b = self.stencil_2b
-        stencil_2c = self.stencil_2c
+        self._a[:] = 0
+
+        nx = self._nx
+        dx = self._dx
+        ny = self._ny
+        dy = self._dy
+        nt = self._nt
+        dt = self._dt
+        term = self._cond
+        mu = self._mu
+        ss = self._ss
+        a = self._a
+        g = self._g
+
+        stencil_a = self._stencil_a
+        stencil_b = self._stencil_b
+        stencil_c = self._stencil_c
+        stencil_2a = self._stencil_2a
+        stencil_2b = self._stencil_2b
+        stencil_2c = self._stencil_2c
 
         if not mu is None:
 
@@ -168,24 +194,29 @@ class FDSolver2D:
 
     def SolveForward(self):
 
-        nx = self.nx
-        dx = self.dx
-        ny = self.ny
-        dy = self.dy
-        nt = self.nt
-        dt = self.dt
-        init = self.cond
-        mu = self.mu
-        ss = self.ss
-        a = self.a
-        g = self.g
+        if not self._validateSetup():
+            return None
 
-        stencil_a = self.stencil_a
-        stencil_b = self.stencil_b
-        stencil_c = self.stencil_c
-        stencil_2a = self.stencil_2a
-        stencil_2b = self.stencil_2b
-        stencil_2c = self.stencil_2c
+        self._a[:] = 0
+
+        nx = self._nx
+        dx = self._dx
+        ny = self._ny
+        dy = self._dy
+        nt = self._nt
+        dt = self._dt
+        init = self._cond
+        mu = self._mu
+        ss = self._ss
+        a = self._a
+        g = self._g
+
+        stencil_a = self._stencil_a
+        stencil_b = self._stencil_b
+        stencil_c = self._stencil_c
+        stencil_2a = self._stencil_2a
+        stencil_2b = self._stencil_2b
+        stencil_2c = self._stencil_2c
 
         if not mu is None:
 
@@ -270,9 +301,8 @@ class FDSolver2D:
             g[i + 1][g[i + 1] < 0.0] = 0
             g[i + 1] /= np.sum(g[i + 1])
 
-
 #-------------------------------------------------------------------------------------------------------------------------#
 
     def Solution(self):
-        return np.reshape(self.g, (self.nt + 1, self.nx, self.ny))
+        return np.reshape(self._g, (self._nt + 1, self._nx, self._ny))
 

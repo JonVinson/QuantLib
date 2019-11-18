@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.optimize import least_squares, minimize, brute
-from scipy._interpolate import interp1d
+from scipy.interpolate import interp1d
 from FDSolver import FDSolver2D
 from FDDiffusionModels import DiffusionModel
 
@@ -47,7 +47,7 @@ class Calibrator:
         self._distributionSetup = True
 
     def GetResult(self):
-        return _calibrate(self)
+        return self._calibrate()
 
     def _setupSolver(self):
         [nx, ny] = self._n
@@ -56,14 +56,14 @@ class Calibrator:
         [a, b] = self._bounds[2:]
         dy = (b - a) / (ny - 1)
         dt = self._T / self._nt
-        self._solver = FDSolver2D(nx, dx, ny, dy, self._nt, dt)
+        self._solver = FDSolver2D([nx, ny, self._nt + 1], [dx, dy, dt])
         self._dx = dx
         self._dy = dy
 
     def _setupModel(self):
         if self._model is not None and self._bounds is not None:
-            self._model.setBounds(self._bounds, self._n)
-            self._setupModel = True
+            self._model.SetBounds(self._bounds, self._n)
+            self._modelSetup = True
 
     def _setupVariables(self):
         if self._model is not None and self._varParams is not None:
@@ -75,33 +75,35 @@ class Calibrator:
             if self._varIndex is None:
                 self._varIndex = range(self._n_par)
             self._fixedIndex = np.setdiff1d(range(self._n_par), self._varIndex)
-            self._setupVariables = True
+            self._variableSetup = True
     
     def _setupDiffusion(self):
         if self._bounds is not None and self._diffStart is not None:
-            self._ix = int((self._diffStart[1] - self._bounds[0]) / self._dx)
-            self._iy = int((self._diffStart[3] - self._bounds[2]) / self._dy)
+            self._ix = int((self._diffStart[0] - self._bounds[0]) / self._dx)
+            self._iy = int((self._diffStart[1] - self._bounds[2]) / self._dy)
             self._diffusionSetup = True
 
     def _validateSetup(self):
         valid = self._modelSetup and self._variableSetup and self._diffusionSetup and self._distributionSetup
-        if ~self._modelSetup:
+        if not self._modelSetup:
             print("Model not set")
-        if ~self._variableSetup:
+        if not self._variableSetup:
             print("Variables not initialized")
-        if ~self._setupDiffusion:
+        if not self._setupDiffusion:
             print("Diffusion not initialized")
-        if ~self._distributionSetup:
+        if not self._distributionSetup:
             print("Known distribution not set")
         return valid
             
     def _calibrate(self):
         
-        if ~self._validateSetup():
+        if not self._validateSetup():
             return None
 
         solver = self._solver
-        solver.cond = np.empty(self._n)
+        model = self._model
+
+        condition = np.empty(self._n)
 
         F = np.linspace(self._bounds[0], self._bounds[1], self._n[0])
 
@@ -115,10 +117,11 @@ class Calibrator:
                 q[self._varIndex[i]] = p[i]
             for i in range(self._n_fix):
                 q[self._fixedIndex[i]] = self._fixParams[i]
-            [solver.mu, solver.ss] = self._model.Calculate(q)
-            solver.cond[:] = 0
-            solver.cond[self._ix, self._iy] = 1
-            solver.a[:] = 0
+            coefficients = model.Calculate(q)
+            condition[:] = 0
+            condition[self._ix, self._iy] = 1
+            solver.SetCoefficients(coefficients)
+            solver.SetCondition(condition)
             solver.SolveForward()
             dist2d = solver.Solution()
             fintp = interp1d(F, np.sum(dist2d[-1], axis=1), kind='cubic')

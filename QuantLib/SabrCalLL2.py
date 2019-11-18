@@ -57,19 +57,18 @@ def sabr_dist_fd2(alpha, beta, rho, sig0, f0, mu, T, bnds, nx, ny, n_steps):
     dt = T[-1] / n_steps
 
     if fds is None:
-        fds = FDSolver2D(nx, dx, ny, dy, n_steps, dt)
-        fds.cond = np.empty((nx, ny))
+        fds = FDSolver2D([nx, ny, n_steps + 1], [dx, dy, dt])
+        fds.SetCondition(np.empty((nx, ny)))
         sabr = SABRModel(bnds, [nx, ny])
         
-    [mean, ss] = sabr.Calculate([alpha, beta, rho])
-    fds.ss = ss
+    coeff = sabr.Calculate([alpha, beta, rho])
+    fds.SetCoefficients(coeff)
 
-    fds.cond[:] = 0
     ix = int((f0 - Fa) / dx)
     iy = int((sig0 - siga) / dy)
-    fds.cond[ix, iy] = 1
 
-    fds.a[:] = 0
+    fds.Condition()[:] = 0
+    fds.Condition()[ix, iy] = 1
 
     fds.SolveForward()
 
@@ -152,10 +151,6 @@ P = sabr_prices_fd2(alpha, beta, rho, sig0, f0, mu, K, t, bnds, nx, ny, n_steps)
 G = np.abs(d2(P[:, -1]))
 G = G / np.sum(G)
 
-plt.plot(K, G0, '--')
-plt.plot(K, G)
-plt.show()
-
 pBnds = ((0, 1), (-1, 1))
 varParams = (0.5, 0)
 varIndex = [0, 2]
@@ -174,8 +169,5 @@ result = cal.GetResult()
 
 print("FD result: ", result)
 
-x = result.x
-#D = sabr_price_dist_fd2(x[0], beta, rho, sig0, f0, mu, K, t, bnds, nx, ny, n_steps)
-
-#plt.plot(K, G, '--', K, D, '-')
-#plt.show()
+if result is not None:
+    x = result.x
