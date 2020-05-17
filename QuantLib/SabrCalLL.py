@@ -10,7 +10,8 @@ from BlackScholes import *
 from FDPricing import *
 from FiniteDifference import *
 
-from FDSolver import FDSolver2D;
+from FDSolver import FDSolver2D
+from FDDiffusionModels import SABRModel
 
 ################################################################################################################
 
@@ -37,37 +38,34 @@ def sabr_prices_mc(alpha, beta, rho, sig0, f0, mu, K, T, Z1, Z2, dt):
 ##############################################################################################################
 
 fds = None
+sabr = None
 
 def sabr_dist_fd2(alpha, beta, rho, sig0, f0, mu, T, bnds, nx, ny, n_steps):
 
-    global fds, init, ss
+    global fds, sabr
 
     a = bnds[0]
     b = bnds[1]
-    F = np.linspace(a, b, nx)
+    Fa = a
     dx = (b - a) / (nx - 1)
 
     a = bnds[2]
     b = bnds[3]
-    sig = np.linspace(a, b, ny)
+    siga = a
     dy = (b - a) / (ny - 1)
     dt = T[-1] / n_steps
 
     if fds is None:
         fds = FDSolver2D(nx, dx, ny, dy, n_steps, dt)
         fds.cond = np.empty((nx, ny))
-        fds.ss = np.zeros((nx, ny, 2, 2))
-
-    fb = np.power(F[:, np.newaxis], beta)
-
-    fds.ss[:, :, 0, 0] = (sig * fb) ** 2
-    fds.ss[:, :, 1, 0] = alpha * rho * (sig ** 2) * fb
-    fds.ss[:, :, 0, 1] = fds.ss[:, :, 1, 0]
-    fds.ss[:, :, 1, 1] = (alpha * sig) ** 2
+        sabr = SABRModel(bnds, [nx, ny])
+        
+    [mean, ss] = sabr.Calculate([alpha, beta, rho])
+    fds.ss = ss
 
     fds.cond[:] = 0
-    ix = int((f0 - F[0]) / dx)
-    iy = int((sig0 - sig[0]) / dy)
+    ix = int((f0 - Fa) / dx)
+    iy = int((sig0 - siga) / dy)
     fds.cond[ix, iy] = 1
 
     fds.a[:] = 0

@@ -4,13 +4,14 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>9005ad74-7f73-45c2-92ee-01541f78718b</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>SabrCalLL.py</StartupFile>
+    <StartupFile>SabrCalLL2.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>QuantLib</Name>
     <RootNamespace>QuantLib</RootNamespace>
+    <SuppressConfigureTestFrameworkPrompt>true</SuppressConfigureTestFrameworkPrompt>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -22,6 +23,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="BlackScholes.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Calibrator.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="FDDiffusionModels.py">
@@ -46,6 +50,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Processes.py" />
+    <Compile Include="SabrCalLL2.py" />
     <Compile Include="SabrPriceDist.py" />
     <Compile Include="SabrCalLL.py" />
     <Compile Include="SabrCal.py">
