@@ -11,6 +11,7 @@
     <OutputPath>.</OutputPath>
     <Name>QuantLib</Name>
     <RootNamespace>QuantLib</RootNamespace>
+    <SuppressConfigureTestFrameworkPrompt>true</SuppressConfigureTestFrameworkPrompt>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>

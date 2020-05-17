@@ -14,33 +14,6 @@ from Calibrator import Calibrator
 from FDSolver import FDSolver2D
 from FDDiffusionModels import SABRModel
 
-################################################################################################################
-
-def sabr_prices_mc(alpha, beta, rho, sig0, f0, mu, K, T, Z1, Z2, dt):
-
-    (S, a, z) = sabr(0, 0, alpha=alpha, beta=beta, rho=rho, sig0=sig0, f0=f0, mu=mu, dt=dt, Z1=Z1, Z2=Z2)
-
-    D = np.exp(-mu * T)
-
-    P = np.zeros((len(K), len(T)))
-
-    for i in range(len(K)):
-        
-        f = lambda x : np.where(x < K[i], 0.0, x - K[i])
-
-        for j in range(len(T)):
-
-            k = int(np.rint((T[j] / dt)))
-
-            P[i, j] = np.mean(f(S[:, k])) * D[j]
-
-    return P
-
-##############################################################################################################
-
-fds = None
-sabr = None
-
 def sabr_dist_fd2(alpha, beta, rho, sig0, f0, mu, T, bnds, nx, ny, n_steps):
 
     global fds, sabr
@@ -73,29 +46,6 @@ def sabr_dist_fd2(alpha, beta, rho, sig0, f0, mu, T, bnds, nx, ny, n_steps):
     fds.SolveForward()
 
     return fds.Solution()
-
-##############################################################################################################
-
-def sabr_price_dist_fd2(alpha, beta, rho, sig0, f0, mu, K, T, bnds, nx, ny, n_steps):
-
-    g = sabr_dist_fd2(alpha, beta, rho, sig0, f0, mu, T, bnds, nx, ny, n_steps)
-        
-    a = bnds[0]
-    b = bnds[1]
-    F = np.linspace(a, b, nx)
-    FF = np.linspace(a, b, 10 * nx - 9)
-
-    dt = T[-1] / n_steps
-
-    P = np.zeros((len(K), len(T)))
-
-    for j in range(len(T)):
-        k = int(np.rint((T[j] / dt)))
-        fintp = interp1d(F, np.sum(g[k],axis=1), kind='cubic')
-        G = fintp(K)
-        P[:, j] = G / np.sum(G)
-
-    return P
 
 ##############################################################################################################
 
@@ -168,6 +118,3 @@ cal.SetDistribution(G, K)
 result = cal.GetResult()
 
 print("FD result: ", result)
-
-if result is not None:
-    x = result.x
