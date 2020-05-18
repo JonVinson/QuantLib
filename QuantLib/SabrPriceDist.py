@@ -137,41 +137,42 @@ def sabr_prices_fd2(alpha, beta, rho, sig0, f0, mu, K, T, bnds, nx, ny, n_steps)
 
 ##############################################################################################################
 
-alpha = np.linspace(0, 0.5, 11);
-beta = 0.5
-rho = np.linspace(0, 0.8, 11);
-sig0 = 0.2
+def test():
+    alpha = np.linspace(0, 0.5, 11);
+    beta = 0.5
+    rho = np.linspace(0, 0.8, 11);
+    sig0 = 0.2
 
-f0 = 1
-mu = None
+    f0 = 1
+    mu = None
 
-a = 0.25
-b = 1.75
-K = np.linspace(a, b, 21)
+    a = 0.25
+    b = 1.75
+    K = np.linspace(a, b, 21)
 
-T = 1.0
-#t = np.array([1/12, 1/6, 0.25, 1/3, 0.5, 1, 2])
-t = np.array([T])
+    T = 1.0
+    #t = np.array([1/12, 1/6, 0.25, 1/3, 0.5, 1, 2])
+    t = np.array([T])
 
-n_steps = 60
-nx = 41
-ny = 41
-bnds = (0, 4, 0, 1)
+    n_steps = 60
+    nx = 41
+    ny = 41
+    bnds = (0, 4, 0, 1)
 
-D = sabr_price_dist_fd2(alpha[5], beta, rho[5], sig0, f0, mu, K, t, bnds, nx, ny, n_steps)
-D = D / np.sum(D)
+    D = sabr_price_dist_fd2(alpha[5], beta, rho[5], sig0, f0, mu, K, t, bnds, nx, ny, n_steps)
+    D = D / np.sum(D)
 
-LL = np.zeros((len(alpha), len(rho)))
+    LL = np.zeros((len(alpha), len(rho)))
 
-for i in range(len(alpha)):
-    for j in range(len(rho)):
-        G = sabr_price_dist_fd2(alpha[i], beta, rho[j], sig0, f0, mu, K, t, bnds, nx, ny, n_steps)
-        G = G / np.sum(G)
-        LL[i, j] = np.sum(D * np.log(G))
-        #LL[i, j] = np.sum(D * np.log(G))
-        #plt.plot(K, G)
+    for i in range(len(alpha)):
+        for j in range(len(rho)):
+            G = sabr_price_dist_fd2(alpha[i], beta, rho[j], sig0, f0, mu, K, t, bnds, nx, ny, n_steps)
+            G = G / np.sum(G)
+            LL[i, j] = np.sum(D * np.log(G))
+            #LL[i, j] = np.sum(D * np.log(G))
+            #plt.plot(K, G)
 
-#plt.show()
+    #plt.show()
 
-plt.contour(alpha, rho, LL, 50)
-plt.show()
+    plt.contour(alpha, rho, LL, 50)
+    plt.show()
