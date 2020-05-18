@@ -18,8 +18,6 @@ from SabrPriceDist import *
 
 def sabr_dist_fd2(alpha, beta, rho, sig0, f0, mu, T, bnds, nx, ny, n_steps):
 
-    global fds, sabr
-
     a = bnds[0]
     b = bnds[1]
     Fa = a
@@ -31,10 +29,9 @@ def sabr_dist_fd2(alpha, beta, rho, sig0, f0, mu, T, bnds, nx, ny, n_steps):
     dy = (b - a) / (ny - 1)
     dt = T[-1] / n_steps
 
-    if fds is None:
-        fds = FDSolver2D([nx, ny, n_steps + 1], [dx, dy, dt])
-        fds.SetCondition(np.empty((nx, ny)))
-        sabr = SABRModel(bnds, [nx, ny])
+    fds = FDSolver2D([nx, ny, n_steps + 1], [dx, dy, dt])
+    fds.SetCondition(np.empty((nx, ny)))
+    sabr = SABRModel(bnds, [nx, ny])
         
     coeff = sabr.Calculate([alpha, beta, rho])
     fds.SetCoefficients(coeff)
