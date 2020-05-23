@@ -69,13 +69,13 @@ class FDSolver2D:
         if self._ss is None and self._mu is None:
             print("ss and/or mu not set")
             valid = False
-        if self._ss is not None and self._mu is not None and np.shape(self._ss)[:2] != np.shape(self._mu):
+        if self._ss is not None and self._mu is not None and np.shape(self._ss)[:2] != np.shape(self._mu)[:2]:
             print("mu and ss are different shapes")
             valid = False
         if self._ss is not None and np.shape(self._ss)[:2] != np.shape(self._cond):
             print("condition and ss are different shapes")
             valid = False
-        if self._mu is not None and np.shape(self._mu) != np.shape(self._cond):
+        if self._mu is not None and np.shape(self._mu)[:2] != np.shape(self._cond):
             print("condition and mu are different shapes")
             valid = False
         return valid

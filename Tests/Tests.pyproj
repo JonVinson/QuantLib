@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>a0869db8-c9cf-4a84-b169-038b510e1fff</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>SabrCalLL2.py</StartupFile>
+    <StartupFile>HestonCalLL2.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -25,6 +25,7 @@
     <Compile Include="ABGraph.py" />
     <Compile Include="SabrCal.py" />
     <Compile Include="SabrCalLL.py" />
+    <Compile Include="HestonCalLL2.py" />
     <Compile Include="SabrCalLL2.py" />
     <Compile Include="SabrTest.py" />
     <Compile Include="Test.py" />
