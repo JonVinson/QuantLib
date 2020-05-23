@@ -50,6 +50,7 @@
     <Compile Include="Regressors.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="HestonPriceDist.py" />
     <Compile Include="SabrPriceDist.py" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />

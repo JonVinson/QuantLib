@@ -8,24 +8,7 @@ from FiniteDifference import *
 
 ################################################################################################################
 
-def sabr_prices_mc(alpha, beta, rho, sig0, f0, mu, K, T, Z1, Z2, dt):
-
-    (S, a, z) = sabr(0, 0, alpha=alpha, beta=beta, rho=rho, sig0=sig0, f0=f0, mu=mu, dt=dt, Z1=Z1, Z2=Z2)
-
-    D = np.exp(-mu * T)
-    P = np.zeros((len(K), len(T)))
-
-    for i in range(len(K)):
-        f = lambda x : np.where(x < K[i], 0.0, x - K[i])
-        for j in range(len(T)):
-            k = int(np.rint((T[j] / dt)))
-            P[i, j] = np.mean(f(S[:, k])) * D[j]
-
-    return P
-
-##############################################################################################################
-
-def sabr_dist_fd2(alpha, beta, rho, sig0, f0, mu, T, bnds, nx, ny, n_steps):
+def heston_dist_fd2(mu, theta, kappa, xi, rho, sig0, f0, T, bnds, nx, ny, n_steps):
 
     a = bnds[0]
     b = bnds[1]
@@ -40,9 +23,9 @@ def sabr_dist_fd2(alpha, beta, rho, sig0, f0, mu, T, bnds, nx, ny, n_steps):
 
     fds = FDSolver2D([nx, ny, n_steps + 1], [dx, dy, dt])
     fds.SetCondition(np.empty((nx, ny)))
-    sabr = SABRModel(bnds, [nx, ny])
+    model = HestonModel(bnds, [nx, ny])
         
-    coeff = sabr.Calculate([alpha, beta, rho])
+    coeff = model.Calculate([mu, theta, kappa, xi, rho])
     fds.SetCoefficients(coeff)
 
     ix = int((f0 - Fa) / dx)
@@ -57,9 +40,9 @@ def sabr_dist_fd2(alpha, beta, rho, sig0, f0, mu, T, bnds, nx, ny, n_steps):
 
 ##############################################################################################################
 
-def sabr_price_dist_fd2(alpha, beta, rho, sig0, f0, mu, K, T, bnds, nx, ny, n_steps):
+def heston_price_dist_fd2(mu, theta, kappa, xi, rho, sig0, f0, K, T, bnds, nx, ny, n_steps):
 
-    g = sabr_dist_fd2(alpha, beta, rho, sig0, f0, mu, T, bnds, nx, ny, n_steps)
+    g = heston_dist_fd2(mu, theta, kappa, xi, rho, sig0, f0, T, bnds, nx, ny, n_steps)
         
     a = bnds[0]
     b = bnds[1]
@@ -80,9 +63,9 @@ def sabr_price_dist_fd2(alpha, beta, rho, sig0, f0, mu, K, T, bnds, nx, ny, n_st
 
 ##############################################################################################################
 
-def sabr_prices_fd2(alpha, beta, rho, sig0, f0, mu, K, T, bnds, nx, ny, n_steps):
+def heston_prices_fd2(mu, theta, kappa, xi, rho, sig0, f0, K, T, bnds, nx, ny, n_steps):
 
-    g = sabr_dist_fd2(alpha, beta, rho, sig0, f0, mu, T, bnds, nx, ny, n_steps)
+    g = heston_dist_fd2(mu, theta, kappa, xi, rho, sig0, f0, T, bnds, nx, ny, n_steps)
         
     a = bnds[0]
     b = bnds[1]

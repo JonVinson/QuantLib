@@ -1,19 +1,21 @@
 import numpy as np
 
 from Calibrator import Calibrator
-from FDDiffusionModels import SABRModel
+from FDDiffusionModels import HestonModel
 
-from SabrPriceDist import *
+from HestonPriceDist import *
 
 ##############################################################################################################
 
-alpha = 0.2
-beta = 1.0
+mu = 0.01
+theta = 0.2
+kappa = 0.1
+xi = 0.2
 rho = -0.4
-sig0 = 0.2
+
+sig0 = 0.25
 
 f0 = 1
-mu = None
 
 a = 0.25
 b = 1.75
@@ -28,18 +30,18 @@ nx = 41
 ny = 41
 bnds = (0, 4, 0, 1)
 
-G0 = sabr_price_dist_fd2(alpha, beta, rho, sig0, f0, mu, K, t, bnds, nx, ny, n_steps)
+G0 = heston_price_dist_fd2(mu, theta, kappa, xi, rho, sig0, f0, K, t, bnds, nx, ny, n_steps)
 G0 = G0 / np.sum(G0)
-P = sabr_prices_fd2(alpha, beta, rho, sig0, f0, mu, K, t, bnds, nx, ny, n_steps)
+P = heston_prices_fd2(mu, theta, kappa, xi, rho, sig0, f0, K, t, bnds, nx, ny, n_steps)
 G = np.abs(d2(P[:, -1]))
 G = G / np.sum(G)
 
 pBnds = ((0, 1), (-1, 1))
 varParams = (0.5, 0)
-varIndex = [0, 2]
-fixParams = [beta]
+varIndex = [3, 4]
+fixParams = [mu, theta, kappa]
 
-model = SABRModel()
+model = HestonModel()
 
 cal = Calibrator()
 
