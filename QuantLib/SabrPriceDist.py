@@ -35,57 +35,35 @@ def sabr_prices_mc(alpha, beta, rho, sig0, f0, mu, K, T, Z1, Z2, dt):
 
 ##############################################################################################################
 
-g = None
-work_a = None
-work_ss = None
-init = None
-
 def sabr_dist_fd2(alpha, beta, rho, sig0, f0, mu, T, bnds, nx, ny, n_steps):
-
-
-    global g, work_a, work_ss, init
-
-    if g is None:
-        g = np.empty((n_steps + 1, nx, ny))
-    if work_a is None:
-        work_a = np.empty((nx, ny, nx, ny))
-    if work_ss is None:
-        work_ss = np.zeros((nx, ny, 2, 2))
-    if init is None:
-        init = np.empty((nx, ny))
-
 
     a = bnds[0]
     b = bnds[1]
-    F = np.linspace(a, b, nx)
+    Fa = a
     dx = (b - a) / (nx - 1)
 
-    # underlying vol range
     a = bnds[2]
     b = bnds[3]
-    sig = np.linspace(a, b, ny)
+    siga = a
     dy = (b - a) / (ny - 1)
-    # Finite difference algorithm (new)
-
-    #s = np.zeros((len(F), len(sig), 2, 2))
-    ss = work_ss
-    fb = np.power(F[:, np.newaxis], beta)
-    ss[:, :, 0, 0] = (sig * fb) ** 2
-    ss[:, :, 1, 0] = alpha * rho * (sig ** 2) * fb
-    ss[:, :, 0, 1] = ss[:, :, 1, 0]
-    ss[:, :, 1, 1] = (alpha * sig) ** 2
-    
     dt = T[-1] / n_steps
 
-    init[:] = 0
-    ix = int((f0 - F[0]) / dx)
-    iy = int((sig0 - sig[0]) / dy)
-    init[ix, iy] = 1
+    fds = FDSolver2D([nx, ny, n_steps + 1], [dx, dy, dt])
+    fds.SetCondition(np.empty((nx, ny)))
+    sabr = SABRModel(bnds, [nx, ny])
+        
+    coeff = sabr.Calculate([alpha, beta, rho])
+    fds.SetCoefficients(coeff)
 
-    fd_solve_fwd_2d(init, None, ss, F, sig, n_steps, dt, work_a=work_a, out=g)
+    ix = int((f0 - Fa) / dx)
+    iy = int((sig0 - siga) / dy)
 
-    return g
+    fds.Condition()[:] = 0
+    fds.Condition()[ix, iy] = 1
 
+    fds.SolveForward()
+
+    return fds.Solution()
 
 ##############################################################################################################
 
