@@ -95,7 +95,7 @@ class Calibrator:
             print("Known distribution not set")
         return valid
             
-    def _calibrate(self):
+    def _calibrate(self, tcal = None):
         
         if not self._validateSetup():
             return None
@@ -124,9 +124,18 @@ class Calibrator:
             solver.SetCondition(condition)
             solver.SolveForward()
             dist2d = solver.Solution()
-            fintp = interp1d(F, np.sum(dist2d[-1], axis=1), kind='cubic')
-            G = fintp(self._xDist)
-            dist = G / np.sum(G)
-            return -np.sum(self._knownDist * np.log(dist))
+            if tcal is None:
+                dist = np.sum(dist2d[-1], axis=1)
+                spl = interp1d(F, dist, kind='cubic')
+                G = spl(self._xDist)
+                dist = G / np.sum(G)
+                return -np.sum(self._knownDist * np.log(dist))
+            else:
+                dist = np.sum(dist2d, axis=2)
+                t = np.linspace(0, self._t, self._nt + 1)
+                spl = RectBivariateSpline(t, F, dist)
+                G = spl(tcal, self._xDist)
+                dist = G / np.sum(G, axis=1)
+                return -np.sum(self._knownDist * np.log(dist))
 
         return minimize(opt_fun, self._varParams, bounds=self._pBounds)
