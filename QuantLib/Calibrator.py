@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.optimize import least_squares, minimize, brute
-from scipy.interpolate import interp1d
+from scipy.interpolate import interp1d, RectBivariateSpline
 from FDSolver import FDSolver2D
 from FDDiffusionModels import DiffusionModel
 
@@ -15,6 +15,7 @@ class Calibrator:
         self._variableSetup = False
         self._diffusionSetup = False
         self._distributionSetup = False
+        self._times = None
 
     def SetModel(self, model):
         self._model = model
@@ -41,9 +42,10 @@ class Calibrator:
         self._diffStart = diffStart
         self._setupDiffusion()
 
-    def SetDistribution(self, knownDist, xDist = None):
+    def SetDistribution(self, knownDist, xDist = None, times = None):
         self._knownDist = knownDist
         self._xDist = xDist
+        self._times = times
         self._distributionSetup = True
 
     def GetResult(self):
@@ -95,7 +97,7 @@ class Calibrator:
             print("Known distribution not set")
         return valid
             
-    def _calibrate(self, tcal = None):
+    def _calibrate(self):
         
         if not self._validateSetup():
             return None
@@ -124,7 +126,7 @@ class Calibrator:
             solver.SetCondition(condition)
             solver.SolveForward()
             dist2d = solver.Solution()
-            if tcal is None:
+            if self._times is None:
                 dist = np.sum(dist2d[-1], axis=1)
                 spl = interp1d(F, dist, kind='cubic')
                 G = spl(self._xDist)
@@ -132,10 +134,10 @@ class Calibrator:
                 return -np.sum(self._knownDist * np.log(dist))
             else:
                 dist = np.sum(dist2d, axis=2)
-                t = np.linspace(0, self._t, self._nt + 1)
+                t = np.linspace(0, self._T, self._nt + 1)
                 spl = RectBivariateSpline(t, F, dist)
-                G = spl(tcal, self._xDist)
-                dist = G / np.sum(G, axis=1)
+                G = spl(self._times, self._xDist)
+                dist = G / np.sum(G, axis=1, keepdims=True)
                 return -np.sum(self._knownDist * np.log(dist))
 
         return minimize(opt_fun, self._varParams, bounds=self._pBounds)

@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>a0869db8-c9cf-4a84-b169-038b510e1fff</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>HestonCalRealData.py</StartupFile>
+    <StartupFile>HestonCalRealDataSurface.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -23,6 +23,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="ABGraph.py" />
+    <Compile Include="HestonCalRealDataSurface.py" />
     <Compile Include="HestonCalRealData.py" />
     <Compile Include="SabrCal.py" />
     <Compile Include="SabrCalRealData.py" />

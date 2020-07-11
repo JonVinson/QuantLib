@@ -30,7 +30,6 @@ b = 420
 K = np.linspace(a, b, 38)
 
 T = 7.0 / 24
-t = np.array([T])
 
 n_steps = 60
 nx = 41
@@ -38,6 +37,7 @@ ny = 41
 bnds = (0, 500, 0, 1)
 
 P = get_prices(); # sql prices
+
 G = np.abs(d2(P))
 G = G / np.sum(G)
 
@@ -52,7 +52,7 @@ cal = Calibrator()
 
 cal.SetModel(model)
 cal.SetParameters(varParams, pBnds, varIndex, fixParams)
-cal.SetLattice(bnds, [nx, ny], t, n_steps)
+cal.SetLattice(bnds, [nx, ny], T, n_steps)
 cal.SetDiffusionStart([f0, sig0])
 cal.SetDistribution(G, K)
 
